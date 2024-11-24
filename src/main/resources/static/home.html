@@ -14,7 +14,7 @@
             <h2 id="date-info" class="text-center">当前日期: <span th:text="${currentDate}"></span></h2>
         </div>
     </div>
-    <h2>已获取新闻列表</h2>
+    <h2>相关新闻列表</h2>
     <div class="row">
         <!-- 股票新闻列表 -->
         <div class="col-3">
@@ -31,7 +31,7 @@
         <!-- 股票列表 -->
         <div class="col-12">
             <h2>股票列表</h2>
-            <table class="table">
+            <table class="table" id="stock-table">
                 <thead>
                 <tr>
                     <th>ID</th>
@@ -40,16 +40,95 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="stock : ${stocks}">
-                    <td th:text="${stock.id}"></td>
-                    <td th:text="${stock.name}"></td>
-                    <td><a th:href="@{/stock/{id}(id=${stock.id})}" class="btn btn-primary">查看详情</a></td>
-                </tr>
                 </tbody>
             </table>
+            <!-- 分页导航 -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination" id="pagination">
+                </ul>
+            </nav>
         </div>
     </div>
 </div>
+<script>
+    function addToLegend(stockId) {
+    // 处理添加到图例的逻辑
+    console.log('Adding stock with ID ' + stockId + ' to legend');
+}
+    function followStock(stockId) {
+    // 处理关注股票的逻辑
+    console.log('Following stock with ID ' + stockId);
+}
+    // 获取所有股票集合的名称并显示在表格中
+    function loadStockCollections(page=1) {
+        const pageSize=10;
+        fetch(`/stocks/collections?page=${page}&size=${pageSize}`)
+            .then(response => response.json())
+            .then(data => {
+                const stockTableBody = document.querySelector('#stock-table tbody');
+                stockTableBody.innerHTML = ''; // 清空现有数据
+                data.content.forEach((collectionName, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `                        <td>${(page - 1) * pageSize + index + 1}</td>
+                        <td>${collectionName}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="addToLegend('${collectionName}')">添加到图例</button>
+                            <button class="btn btn-secondary" onclick="followStock('${collectionName}')">关注</button>
+                        </td>
+                    `;
+                    stockTableBody.appendChild(row);
+                });
+                updatePagination(data);
+            })
+            .catch(error => console.error('Error loading stock collections:', error));
+    }
+    // 更新分页导航
+    function updatePagination(data) {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = ''; // 清空现有分页导航
+
+        const totalPages = data.totalPages;
+        const currentPage = data.number + 1;
+
+        if (currentPage > 1) {
+            const prevPage = currentPage - 1;
+            const prevLi = document.createElement('li');
+            prevLi.className = 'page-item';
+            const prevA = document.createElement('a');
+            prevA.className = 'page-link';
+            prevA.href = '#';
+            prevA.textContent = '上一页';
+            prevA.onclick = () => loadStockCollections(prevPage);
+            prevLi.appendChild(prevA);
+            pagination.appendChild(prevLi);
+        }
+
+        for (let i = 1; i <= totalPages; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            const a = document.createElement('a');
+            a.className = 'page-link';
+            a.href = '#';
+            a.textContent = i;
+            a.onclick = () => loadStockCollections(i);
+            li.appendChild(a);
+            pagination.appendChild(li);
+        }
+
+        if (currentPage < totalPages) {
+            const nextPage = currentPage + 1;
+            const nextLi = document.createElement('li');
+            nextLi.className = 'page-item';
+            const nextA = document.createElement('a');
+            nextA.className = 'page-link';
+            nextA.href = '#';
+            nextA.textContent = '下一页';
+            nextA.onclick = () => loadStockCollections(nextPage);
+            nextLi.appendChild(nextA);
+            pagination.appendChild(nextLi);
+        }
+    }
+</script>
 <!-- 引入 Chart.js 用于绘制折线图 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script th:inline="javascript">
@@ -74,6 +153,7 @@
         };
     });
 window.onload = function() {
+    loadStockCollections(1);
     const ctx = document.getElementById('stock-chart').getContext('2d');
     const datasets = processedStocksData.map(item => ({
         label: item.name,
@@ -92,8 +172,18 @@ window.onload = function() {
         },
         options: {
             scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: '日期'
+                    }
+                },
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: '股价（元/股）'
+                    }
                 }
             },
             tooltips: {
