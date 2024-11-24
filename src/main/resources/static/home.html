@@ -19,9 +19,7 @@
         <!-- 股票新闻列表 -->
         <div class="col-3">
             <div class="list-group" id="news-list">
-                <a th:each="news : ${newsList}" th:href="${news.url}" target="_blank" class="list-group-item list-group-item-action">
-                    <span th:text="${news.title}"></span>
-                </a>
+                <!-- 动态生成的新闻列表将在这里显示 -->
             </div>
         </div>
         <!-- 折线图 -->
@@ -53,7 +51,6 @@
     </div>
 </div>
 <!-- 引入 Chart.js 用于绘制折线图 -->
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script th:inline="javascript">
     // console.log("原始的股票数据:", stocksData);
@@ -110,6 +107,40 @@ window.onload = function() {
         }
     });
 }
+</script>
+<!--侧边栏分页无线滚动展示-->
+<script th:inline="javascript">
+    let currentPage = 0;
+    const pageSize = 10; // 每页显示的新闻数量
+    function loadMoreNews() {
+        fetch(`/news/page?page=${currentPage}&size=${pageSize}`)
+            .then(response => response.json())
+            .then(data => {
+                const newsList = document.getElementById('news-list');
+                data.forEach(news => {
+                    const a = document.createElement('a');
+                    a.href = "https://www.baidu.com/";
+                    a.target = '_blank';
+                    a.className = 'list-group-item list-group-item-action';
+                    a.innerHTML = `                        <h5>${news.news_title}</h5>
+                        <p>${news.news_article}</p>
+                        <small>${news.news_time}</small>
+                    `;
+                    newsList.appendChild(a);
+                });
+                currentPage++;
+            })
+            .catch(error => console.error('Error loading more news:', error));
+    }
+
+window.addEventListener('scroll', () => {
+    const { scrollTop, clientHeight, scrollHeight } = document.documentElement;
+    if (scrollTop + clientHeight >= scrollHeight - 5) {
+        loadMoreNews();
+    }
+});
+// 初始加载第一页新闻
+loadMoreNews();
 </script>
 </body>
 </html>

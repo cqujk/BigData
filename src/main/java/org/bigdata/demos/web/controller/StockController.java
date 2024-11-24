@@ -20,17 +20,7 @@ public class StockController {
     @Autowired
     private StockService stockService;
 
-    @GetMapping("/")
-    public ModelAndView getAllStocks(Model model) {
-        ModelAndView modelAndView = new ModelAndView("home");
-        modelAndView.addObject("stocksData", stockService.getAllStocks());
-        LocalDate currentDate = LocalDate.now();
-        modelAndView.addObject("currentDate", currentDate.toString());
-        //System.out.println("getAllStocks"+stockService.getAllStocks());
-//        logger.info("the stocksData is"+stockService.getAllStocks());
-//        return "home";
-        return modelAndView;
-    }
+
 
     @GetMapping("/stock/{id}")
     public String getStockById(@PathVariable String id, Model model) {
