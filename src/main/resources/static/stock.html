@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>股票详情</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="home.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container mt-5">
+    <h1 th:text="${stock.name}"></h1>
+    <p>预测利好的概率: <span th:text="${stock.positiveProbability} + '%'"></span></p>
+    <p>预测今日数值: <span th:text="${stock.predictedValue}"></span></p>
+
+    <h2>相关新闻</h2>
+    <ul>
+        <li th:each="news : ${newsList}">
+            <a th:href="${news.url}" target="_blank" th:text="${news.title}"></a>
+        </li>
+    </ul>
+
+    <h2>相关新闻的利好利空分布</h2>
+    <canvas id="sentimentChart" width="400" height="400"></canvas>
+    <script>
+        var ctx = document.getElementById('sentimentChart').getContext('2d');
+        var sentimentChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['利好', '利空'],
+                datasets: [{
+                    data: [${positiveCount}, ${negativeCount}],
+                    backgroundColor: ['#3cba9f', '#c45850']
+                }]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: '相关新闻的利好利空分布'
+                }
+            }
+        });
+    </script>
+
+    <h2>实际值与预测值</h2>
+    <canvas id="valueChart" width="800" height="400"></canvas>
+    <script>
+        var ctx = document.getElementById('valueChart').getContext('2d');
+        var valueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [[${#arrays.toString(stock.dates, "','")}]],
+                datasets: [
+                    {
+                        label: '实际值',
+                        data: [[${#arrays.toString(stock.actualValues, ',')}]],
+                        borderColor: '#3cba9f',
+                        fill: false
+                    },
+                    {
+                        label: '预测值',
+                        data: [[${#arrays.toString(stock.predictedValues, ',')}]],
+                        borderColor: '#c45850',
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: '实际值与预测值'
+                }
+            }
+        });
+    </script>
+</div>
+</body>
+</html>
