@@ -53,26 +53,17 @@
     </div>
 </div>
 <!-- 引入 Chart.js 用于绘制折线图 -->
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>    // 假设你有一个股票数据数组
-// const NstocksData ='${stocksData}';
-// let stocksData = [[${stocksData}]];
-const stocksData = [[]];
-// // console.log("sss:",${stocksData});
-// console.log("原始的股票数据 JSON 字符串:", stocksData);
-// 解析JSON字符串为JavaScript对象
-// const stocksData = '${T(com.google.gson.Gson).fromJson(stocksData, T(java.util.List))}';
-// let parsedStocksData = [];
-// try {
-    parsedStocksData = JSON.parse(${stocksData});
-// } catch (e) {
-//     console.error("解析JSON失败:", e);
-// }
-console.log("原始的股票数据:", stocksData);
-// const stocksData=JSON.parse([[${stocksData}]]);
-// console.log("转为JSON后的为",stocksData)
-window.onload = function() {
-    //
+<script th:inline="javascript">
+    // console.log("原始的股票数据:", stocksData);
+    // console.log("处理后的股票数据:",stocksData.length);
+    // if (stocksData.length === 0) {
+    //     console.error("没有股票数据可供处理");
+    // }
+    const stocksData = [[${stocksData}]];
+    console.log("处理后的股票数据:",stocksData);
+
     const processedStocksData = stocksData.map(stockData => {
         const name = stockData['code'];
         const data = stockData['prices'].map(item => ({ date: item['date'], value: item['close_price'] }));
@@ -85,9 +76,7 @@ window.onload = function() {
             borderColor: borderColor
         };
     });
-    // // console.log("处理后的股票数据:", stocksData); // 输出处理后的股票数据
-    // // console.log("原始的股票数据:", [[${stocksData}]]);
-    // console.log("处理后的股票数据:", processedStocksData); // 输出处理后的股票数据
+window.onload = function() {
     const ctx = document.getElementById('stock-chart').getContext('2d');
     const datasets = processedStocksData.map(item => ({
         label: item.name,
